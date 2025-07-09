@@ -5,10 +5,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Search, Edit, Trash2, Plus, User } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Edit, Trash2, Plus, User, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import StudentProfileModal from './StudentProfileModal';
 import AddStudentModal from './AddStudentModal';
+
+interface SemesterResult {
+  semester: number;
+  subjects: {
+    name: string;
+    credits: number;
+    grade: string;
+    marks: number;
+  }[];
+  sgpa: number;
+  totalCredits: number;
+}
 
 interface Student {
   id: number;
@@ -25,19 +38,27 @@ interface Student {
   address: string;
   parentName: string;
   parentPhone: string;
+  dateOfBirth: string;
+  bloodGroup: string;
+  category: string;
+  admissionDate: string;
+  hostelDetails: string;
+  emergencyContact: string;
+  semesterResults: SemesterResult[];
 }
 
 const StudentManagement = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Sample student data based on your list
+  // Enhanced sample student data with complete details
   const sampleStudents: Student[] = [
     {
       id: 1,
@@ -53,7 +74,41 @@ const StudentManagement = () => {
       phone: '9876543210',
       address: 'Hyderabad, Telangana',
       parentName: 'Badineni Ravi',
-      parentPhone: '9876543211'
+      parentPhone: '9876543211',
+      dateOfBirth: '2003-05-15',
+      bloodGroup: 'B+',
+      category: 'OC',
+      admissionDate: '2022-08-15',
+      hostelDetails: 'Block A, Room 205',
+      emergencyContact: '9876543212',
+      semesterResults: [
+        {
+          semester: 1,
+          sgpa: 8.2,
+          totalCredits: 20,
+          subjects: [
+            { name: 'Mathematics I', credits: 4, grade: 'A', marks: 85 },
+            { name: 'Physics', credits: 4, grade: 'B+', marks: 78 },
+            { name: 'Chemistry', credits: 3, grade: 'A', marks: 82 },
+            { name: 'Programming in C', credits: 4, grade: 'A+', marks: 92 },
+            { name: 'Engineering Graphics', credits: 3, grade: 'B+', marks: 75 },
+            { name: 'Communication Skills', credits: 2, grade: 'A', marks: 88 }
+          ]
+        },
+        {
+          semester: 2,
+          sgpa: 8.4,
+          totalCredits: 22,
+          subjects: [
+            { name: 'Mathematics II', credits: 4, grade: 'A', marks: 87 },
+            { name: 'Data Structures', credits: 4, grade: 'A+', marks: 94 },
+            { name: 'Digital Logic Design', credits: 4, grade: 'A', marks: 83 },
+            { name: 'Object Oriented Programming', credits: 4, grade: 'A', marks: 89 },
+            { name: 'Environmental Science', credits: 3, grade: 'B+', marks: 76 },
+            { name: 'Professional Ethics', credits: 3, grade: 'A', marks: 85 }
+          ]
+        }
+      ]
     },
     {
       id: 2,
@@ -69,7 +124,28 @@ const StudentManagement = () => {
       phone: '9876543212',
       address: 'Warangal, Telangana',
       parentName: 'Aemireddy Srinivas',
-      parentPhone: '9876543213'
+      parentPhone: '9876543213',
+      dateOfBirth: '2003-03-20',
+      bloodGroup: 'A+',
+      category: 'BC-A',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block B, Room 102',
+      emergencyContact: '9876543214',
+      semesterResults: [
+        {
+          semester: 1,
+          sgpa: 9.1,
+          totalCredits: 20,
+          subjects: [
+            { name: 'Mathematics I', credits: 4, grade: 'A+', marks: 95 },
+            { name: 'Physics', credits: 4, grade: 'A', marks: 88 },
+            { name: 'Chemistry', credits: 3, grade: 'A+', marks: 93 },
+            { name: 'Programming in C', credits: 4, grade: 'A+', marks: 96 },
+            { name: 'Engineering Graphics', credits: 3, grade: 'A', marks: 85 },
+            { name: 'Communication Skills', credits: 2, grade: 'A+', marks: 95 }
+          ]
+        }
+      ]
     },
     {
       id: 3,
@@ -81,32 +157,36 @@ const StudentManagement = () => {
       semester: '3',
       cgpa: '8.8',
       attendance: '88%',
-      status: 'approved',
+      status: 'pending',
       phone: '9876543214',
       address: 'Karimnagar, Telangana',
       parentName: 'Adimulam Krishna',
-      parentPhone: '9876543215'
-    },
-    {
-      id: 4,
-      rollNumber: '24891A7202',
-      name: 'ALLAM CHARAN TEJA',
-      year: '2nd Year',
-      email: 'charan.a@vit.ac.in',
-      section: 'A',
-      semester: '3',
-      cgpa: '8.3',
-      attendance: '80%',
-      status: 'approved',
-      phone: '9876543216',
-      address: 'Nizamabad, Telangana',
-      parentName: 'Allam Venkat',
-      parentPhone: '9876543217'
+      parentPhone: '9876543215',
+      dateOfBirth: '2004-07-12',
+      bloodGroup: 'O+',
+      category: 'SC',
+      admissionDate: '2024-08-15',
+      hostelDetails: 'Day Scholar',
+      emergencyContact: '9876543216',
+      semesterResults: [
+        {
+          semester: 1,
+          sgpa: 8.5,
+          totalCredits: 20,
+          subjects: [
+            { name: 'Mathematics I', credits: 4, grade: 'A', marks: 89 },
+            { name: 'Physics', credits: 4, grade: 'B+', marks: 79 },
+            { name: 'Chemistry', credits: 3, grade: 'A', marks: 86 },
+            { name: 'Programming in C', credits: 4, grade: 'A', marks: 91 },
+            { name: 'Engineering Graphics', credits: 3, grade: 'B+', marks: 77 },
+            { name: 'Communication Skills', credits: 2, grade: 'A', marks: 87 }
+          ]
+        }
+      ]
     }
   ];
 
   useEffect(() => {
-    // Initialize with sample data
     setStudents(sampleStudents);
     setFilteredStudents(sampleStudents);
     setLoading(false);
@@ -120,6 +200,11 @@ const StudentManagement = () => {
       filtered = filtered.filter(student => student.year === selectedYear);
     }
 
+    // Filter by status
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter(student => student.status === selectedStatus);
+    }
+
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(student =>
@@ -130,7 +215,7 @@ const StudentManagement = () => {
     }
 
     setFilteredStudents(filtered);
-  }, [students, selectedYear, searchTerm]);
+  }, [students, selectedYear, selectedStatus, searchTerm]);
 
   const handleEditStudent = (student: Student) => {
     setSelectedStudent(student);
@@ -142,6 +227,20 @@ const StudentManagement = () => {
       setStudents(prev => prev.filter(s => s.id !== studentId));
       toast.success('Student deleted successfully');
     }
+  };
+
+  const handleApproveStudent = (studentId: number) => {
+    setStudents(prev => prev.map(s => 
+      s.id === studentId ? { ...s, status: 'approved' } : s
+    ));
+    toast.success('Student approved successfully');
+  };
+
+  const handleRejectStudent = (studentId: number) => {
+    setStudents(prev => prev.map(s => 
+      s.id === studentId ? { ...s, status: 'rejected' } : s
+    ));
+    toast.error('Student rejected');
   };
 
   const handleUpdateStudent = (updatedStudent: Student) => {
@@ -176,133 +275,227 @@ const StudentManagement = () => {
           <CardDescription>Manage all student records and information</CardDescription>
         </CardHeader>
         <CardContent>
-          {/* Filter and Search Controls */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search by name, roll number, or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+          <Tabs defaultValue="list" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="list">Student List</TabsTrigger>
+              <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="list">
+              {/* Filter and Search Controls */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search by name, roll number, or email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                <Select value={selectedYear} onValueChange={setSelectedYear}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Years</SelectItem>
+                    <SelectItem value="1st Year">1st Year</SelectItem>
+                    <SelectItem value="2nd Year">2nd Year</SelectItem>
+                    <SelectItem value="3rd Year">3rd Year</SelectItem>
+                    <SelectItem value="4th Year">4th Year</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </div>
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Filter by year" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Years</SelectItem>
-                <SelectItem value="1st Year">1st Year</SelectItem>
-                <SelectItem value="2nd Year">2nd Year</SelectItem>
-                <SelectItem value="3rd Year">3rd Year</SelectItem>
-                <SelectItem value="4th Year">4th Year</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
-          {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-blue-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Total Students</p>
-                    <p className="text-xl font-bold">{students.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-green-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Filtered Results</p>
-                    <p className="text-xl font-bold">{filteredStudents.length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-purple-600" />
-                  <div>
-                    <p className="text-sm text-gray-600">Approved</p>
-                    <p className="text-xl font-bold">{students.filter(s => s.status === 'approved').length}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Students Table */}
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Roll Number</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Year</TableHead>
-                  <TableHead>Section</TableHead>
-                  <TableHead>CGPA</TableHead>
-                  <TableHead>Attendance</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredStudents.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{student.rollNumber}</TableCell>
-                    <TableCell>{student.name}</TableCell>
-                    <TableCell>{student.year}</TableCell>
-                    <TableCell>{student.section}</TableCell>
-                    <TableCell>{student.cgpa}</TableCell>
-                    <TableCell>{student.attendance}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        student.status === 'approved' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {student.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditStudent(student)}
-                        >
-                          <Edit className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteStudent(student.id)}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+              {/* Statistics */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-blue-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Total Students</p>
+                        <p className="text-xl font-bold">{students.length}</p>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Approved</p>
+                        <p className="text-xl font-bold">{students.filter(s => s.status === 'approved').length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <XCircle className="w-4 h-4 text-yellow-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Pending</p>
+                        <p className="text-xl font-bold">{students.filter(s => s.status === 'pending').length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-red-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Rejected</p>
+                        <p className="text-xl font-bold">{students.filter(s => s.status === 'rejected').length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-          {filteredStudents.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No students found matching your criteria.</p>
-            </div>
-          )}
+              {/* Students Table */}
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Roll Number</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Year</TableHead>
+                      <TableHead>Section</TableHead>
+                      <TableHead>CGPA</TableHead>
+                      <TableHead>Attendance</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStudents.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.rollNumber}</TableCell>
+                        <TableCell>{student.name}</TableCell>
+                        <TableCell>{student.year}</TableCell>
+                        <TableCell>{student.section}</TableCell>
+                        <TableCell>{student.cgpa}</TableCell>
+                        <TableCell>{student.attendance}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            student.status === 'approved' 
+                              ? 'bg-green-100 text-green-800' 
+                              : student.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {student.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditStudent(student)}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            {student.status === 'pending' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApproveStudent(student.id)}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleRejectStudent(student.id)}
+                                  className="text-red-600 border-red-300 hover:bg-red-50"
+                                >
+                                  <XCircle className="w-3 h-3" />
+                                </Button>
+                              </>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleDeleteStudent(student.id)}
+                              className="text-red-600 border-red-300 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {filteredStudents.length === 0 && (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No students found matching your criteria.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="pending">
+              <div className="space-y-4">
+                {students.filter(s => s.status === 'pending').map((student) => (
+                  <Card key={student.id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{student.name}</h4>
+                          <p className="text-sm text-gray-600">{student.rollNumber} • {student.email}</p>
+                          <p className="text-xs text-gray-500">{student.year} • Section {student.section}</p>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleApproveStudent(student.id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleRejectStudent(student.id)}
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {students.filter(s => s.status === 'pending').length === 0 && (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">No pending approvals.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
