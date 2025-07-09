@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { X, User, Shield, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -26,6 +26,7 @@ interface StudentFormData {
 }
 
 export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [loginData, setLoginData] = useState({
@@ -53,21 +54,45 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
     
     if (type === 'admin') {
       if (loginData.username === 'admin' && loginData.password === 'admin123') {
+        // Store admin session
+        localStorage.setItem('userType', 'admin');
+        localStorage.setItem('currentUser', JSON.stringify({ username: 'admin', type: 'admin' }));
+        
         toast.success('Admin login successful!');
         onClose();
-        // Here you would typically set admin session and redirect
+        
+        // Redirect to admin dashboard
+        setTimeout(() => {
+          navigate('/admin-dashboard');
+        }, 500);
       } else {
         toast.error('Invalid admin credentials');
       }
     } else {
       // Student login logic - check if roll number exists and is approved
-      const sampleStudents = ['21BCT001', '21BCT002'];
-      if (sampleStudents.includes(loginData.username)) {
+      const sampleStudents = [
+        { rollNumber: '21BCT001', name: 'Alice Johnson', year: '3rd Year', section: 'A', status: 'approved' },
+        { rollNumber: '21BCT002', name: 'Bob Wilson', year: '2nd Year', section: 'B', status: 'approved' }
+      ];
+      
+      const student = sampleStudents.find(s => s.rollNumber === loginData.username);
+      
+      if (student && student.status === 'approved') {
+        // Store student session
+        localStorage.setItem('userType', 'student');
+        localStorage.setItem('currentUser', JSON.stringify(student));
+        
         toast.success('Student login successful!');
         onClose();
-        // Here you would typically set student session and redirect to dashboard
+        
+        // Redirect to student dashboard
+        setTimeout(() => {
+          navigate('/student-dashboard');
+        }, 500);
+      } else if (student && student.status === 'pending') {
+        toast.error('Your account is pending approval. Please wait for admin approval.');
       } else {
-        toast.error('Invalid roll number or account not approved');
+        toast.error('Invalid roll number or account not found');
       }
     }
   };
