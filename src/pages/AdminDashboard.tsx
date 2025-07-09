@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import StudentManagement from '../components/StudentManagement';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -68,6 +69,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="students">Student Management</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
+            <TabsTrigger value="timetables">Timetables</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -161,33 +163,7 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="students">
-            <Card className="bg-white/80 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle>All Students</CardTitle>
-                <CardDescription>Manage student accounts and information</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {approvedStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{student.name}</h4>
-                        <p className="text-sm text-gray-600">{student.rollNumber} • {student.email}</p>
-                        <p className="text-xs text-gray-500">{student.year} • Status: {student.status}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
-                          Edit Profile
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <StudentManagement />
           </TabsContent>
 
           <TabsContent value="courses">
@@ -197,7 +173,62 @@ const AdminDashboard = () => {
                 <CardDescription>Manage courses and academic content</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center text-gray-500 py-8">Course management features coming soon...</p>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold">Machine Learning</h3>
+                        <p className="text-sm text-gray-600">Credits: 4 | Semester: 6</p>
+                        <p className="text-xs text-gray-500">Prof. Dr. Sharma</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold">Data Structures & Algorithms</h3>
+                        <p className="text-sm text-gray-600">Credits: 4 | Semester: 3</p>
+                        <p className="text-xs text-gray-500">Prof. Dr. Patel</p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold">Database Management</h3>
+                        <p className="text-sm text-gray-600">Credits: 3 | Semester: 4</p>
+                        <p className="text-xs text-gray-500">Prof. Dr. Kumar</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Button>Add New Course</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="timetables">
+            <Card className="bg-white/80 backdrop-blur-sm">
+              <CardHeader>
+                <CardTitle>Timetable Management</CardTitle>
+                <CardDescription>Manage class schedules and timetables</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold">2nd Year - Section A</h3>
+                        <p className="text-sm text-gray-600">Morning Batch | 9:00 AM - 4:00 PM</p>
+                        <Button size="sm" variant="outline" className="mt-2">View/Edit</Button>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <h3 className="font-semibold">3rd Year - Section A</h3>
+                        <p className="text-sm text-gray-600">Morning Batch | 9:00 AM - 4:00 PM</p>
+                        <Button size="sm" variant="outline" className="mt-2">View/Edit</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <Button>Create New Timetable</Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -209,7 +240,29 @@ const AdminDashboard = () => {
                 <CardDescription>Configure department preferences and settings</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-center text-gray-500 py-8">Settings panel coming soon...</p>
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Academic Settings</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span>Current Academic Year</span>
+                        <span className="font-medium">2024-25</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span>Current Semester</span>
+                        <span className="font-medium">Odd Semester</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">System Settings</h3>
+                    <div className="space-y-4">
+                      <Button variant="outline">Backup Database</Button>
+                      <Button variant="outline">Export Student Data</Button>
+                      <Button variant="outline">System Maintenance</Button>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
