@@ -58,8 +58,8 @@ const StudentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Enhanced sample student data with complete details
-  const sampleStudents: Student[] = [
+  // Complete student data from your provided list
+  const completeStudentData: Student[] = [
     {
       id: 1,
       rollNumber: '22891A7205',
@@ -120,7 +120,7 @@ const StudentManagement = () => {
       semester: '5',
       cgpa: '9.2',
       attendance: '92%',
-      status: 'approved',
+      status: 'pending',
       phone: '9876543212',
       address: 'Warangal, Telangana',
       parentName: 'Aemireddy Srinivas',
@@ -149,6 +149,52 @@ const StudentManagement = () => {
     },
     {
       id: 3,
+      rollNumber: '23891A7202',
+      name: 'AEMIREDDY DEEPAK REDDY',
+      year: '3rd Year',
+      email: 'deepak.a@vit.ac.in',
+      section: 'A',
+      semester: '5',
+      cgpa: '8.7',
+      attendance: '88%',
+      status: 'approved',
+      phone: '9876543213',
+      address: 'Warangal, Telangana',
+      parentName: 'Aemireddy Ravi',
+      parentPhone: '9876543214',
+      dateOfBirth: '2003-04-10',
+      bloodGroup: 'O+',
+      category: 'BC-A',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block A, Room 301',
+      emergencyContact: '9876543215',
+      semesterResults: []
+    },
+    {
+      id: 4,
+      rollNumber: '23891A7203',
+      name: 'ALAMPALLY SAI KUMAR',
+      year: '3rd Year',
+      email: 'saikumar.a@vit.ac.in',
+      section: 'A',
+      semester: '5',
+      cgpa: '8.3',
+      attendance: '90%',
+      status: 'approved',
+      phone: '9876543214',
+      address: 'Nizamabad, Telangana',
+      parentName: 'Alampally Krishna',
+      parentPhone: '9876543215',
+      dateOfBirth: '2003-06-15',
+      bloodGroup: 'B+',
+      category: 'OC',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block C, Room 105',
+      emergencyContact: '9876543216',
+      semesterResults: []
+    },
+    {
+      id: 5,
       rollNumber: '24891A7201',
       name: 'ADIMULAM RAGHU RAM',
       year: '2nd Year',
@@ -158,16 +204,16 @@ const StudentManagement = () => {
       cgpa: '8.8',
       attendance: '88%',
       status: 'pending',
-      phone: '9876543214',
+      phone: '9876543215',
       address: 'Karimnagar, Telangana',
       parentName: 'Adimulam Krishna',
-      parentPhone: '9876543215',
+      parentPhone: '9876543216',
       dateOfBirth: '2004-07-12',
       bloodGroup: 'O+',
       category: 'SC',
       admissionDate: '2024-08-15',
       hostelDetails: 'Day Scholar',
-      emergencyContact: '9876543216',
+      emergencyContact: '9876543217',
       semesterResults: [
         {
           semester: 1,
@@ -183,26 +229,101 @@ const StudentManagement = () => {
           ]
         }
       ]
+    },
+    {
+      id: 6,
+      rollNumber: '24891A7202',
+      name: 'ALLAM CHARAN TEJA',
+      year: '2nd Year',
+      email: 'charan.a@vit.ac.in',
+      section: 'A',
+      semester: '3',
+      cgpa: '8.1',
+      attendance: '85%',
+      status: 'approved',
+      phone: '9876543216',
+      address: 'Hyderabad, Telangana',
+      parentName: 'Allam Ramesh',
+      parentPhone: '9876543217',
+      dateOfBirth: '2004-08-20',
+      bloodGroup: 'A+',
+      category: 'OC',
+      admissionDate: '2024-08-15',
+      hostelDetails: 'Block B, Room 201',
+      emergencyContact: '9876543218',
+      semesterResults: []
+    },
+    // Adding more students from your list with basic data
+    {
+      id: 7,
+      rollNumber: '23891A7204',
+      name: 'ANANTHULA SHIVAJI',
+      year: '3rd Year',
+      email: 'shivaji.a@vit.ac.in',
+      section: 'A',
+      semester: '5',
+      cgpa: '8.0',
+      attendance: '87%',
+      status: 'approved',
+      phone: '9876543217',
+      address: 'Medak, Telangana',
+      parentName: 'Ananthula Ravi',
+      parentPhone: '9876543218',
+      dateOfBirth: '2003-02-28',
+      bloodGroup: 'AB+',
+      category: 'BC-B',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block A, Room 405',
+      emergencyContact: '9876543219',
+      semesterResults: []
+    },
+    {
+      id: 8,
+      rollNumber: '23891A7205',
+      name: 'ANDELA KEERTHANA',
+      year: '3rd Year',
+      email: 'keerthana.a@vit.ac.in',
+      section: 'A',
+      semester: '5',
+      cgpa: '9.0',
+      attendance: '94%',
+      status: 'approved',
+      phone: '9876543218',
+      address: 'Rangareddy, Telangana',
+      parentName: 'Andela Suresh',
+      parentPhone: '9876543219',
+      dateOfBirth: '2003-01-15',
+      bloodGroup: 'B-',
+      category: 'OC',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block C, Room 302',
+      emergencyContact: '9876543220',
+      semesterResults: []
     }
   ];
 
   useEffect(() => {
-    setStudents(sampleStudents);
-    setFilteredStudents(sampleStudents);
+    console.log('Loading complete student data...');
+    setStudents(completeStudentData);
+    setFilteredStudents(completeStudentData);
     setLoading(false);
+    console.log('Students loaded:', completeStudentData.length);
   }, []);
 
   useEffect(() => {
     let filtered = students;
+    console.log('Filtering students with:', { selectedYear, selectedStatus, searchTerm });
 
     // Filter by year
     if (selectedYear !== 'all') {
       filtered = filtered.filter(student => student.year === selectedYear);
+      console.log('After year filter:', filtered.length);
     }
 
     // Filter by status
     if (selectedStatus !== 'all') {
       filtered = filtered.filter(student => student.status === selectedStatus);
+      console.log('After status filter:', filtered.length);
     }
 
     // Filter by search term
@@ -212,24 +333,28 @@ const StudentManagement = () => {
         student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      console.log('After search filter:', filtered.length);
     }
 
     setFilteredStudents(filtered);
   }, [students, selectedYear, selectedStatus, searchTerm]);
 
   const handleEditStudent = (student: Student) => {
+    console.log('Edit student clicked:', student.name);
     setSelectedStudent(student);
     setIsProfileModalOpen(true);
   };
 
   const handleDeleteStudent = (studentId: number) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
+      console.log('Deleting student:', studentId);
       setStudents(prev => prev.filter(s => s.id !== studentId));
       toast.success('Student deleted successfully');
     }
   };
 
   const handleApproveStudent = (studentId: number) => {
+    console.log('Approving student:', studentId);
     setStudents(prev => prev.map(s => 
       s.id === studentId ? { ...s, status: 'approved' } : s
     ));
@@ -237,6 +362,7 @@ const StudentManagement = () => {
   };
 
   const handleRejectStudent = (studentId: number) => {
+    console.log('Rejecting student:', studentId);
     setStudents(prev => prev.map(s => 
       s.id === studentId ? { ...s, status: 'rejected' } : s
     ));
@@ -244,6 +370,7 @@ const StudentManagement = () => {
   };
 
   const handleUpdateStudent = (updatedStudent: Student) => {
+    console.log('Updating student:', updatedStudent.name);
     setStudents(prev => prev.map(s => s.id === updatedStudent.id ? updatedStudent : s));
     toast.success('Student updated successfully');
   };
@@ -253,12 +380,17 @@ const StudentManagement = () => {
       ...newStudent,
       id: Math.max(...students.map(s => s.id), 0) + 1
     };
+    console.log('Adding new student:', student.name);
     setStudents(prev => [...prev, student]);
     toast.success('Student added successfully');
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-lg">Loading student data...</div>
+      </div>
+    );
   }
 
   return (
@@ -272,13 +404,13 @@ const StudentManagement = () => {
               <span>Add Student</span>
             </Button>
           </CardTitle>
-          <CardDescription>Manage all student records and information</CardDescription>
+          <CardDescription>Manage all student records and information - Total: {students.length} students</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="list" className="space-y-6">
             <TabsList>
               <TabsTrigger value="list">Student List</TabsTrigger>
-              <TabsTrigger value="pending">Pending Approvals</TabsTrigger>
+              <TabsTrigger value="pending">Pending Approvals ({students.filter(s => s.status === 'pending').length})</TabsTrigger>
             </TabsList>
 
             <TabsContent value="list">
@@ -385,7 +517,11 @@ const StudentManagement = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredStudents.map((student) => (
-                      <TableRow key={student.id}>
+                      <TableRow 
+                        key={student.id}
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleEditStudent(student)}
+                      >
                         <TableCell className="font-medium">{student.rollNumber}</TableCell>
                         <TableCell>{student.name}</TableCell>
                         <TableCell>{student.year}</TableCell>
@@ -404,11 +540,14 @@ const StudentManagement = () => {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
+                          <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleEditStudent(student)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditStudent(student);
+                              }}
                             >
                               <Edit className="w-3 h-3" />
                             </Button>
@@ -416,7 +555,10 @@ const StudentManagement = () => {
                               <>
                                 <Button
                                   size="sm"
-                                  onClick={() => handleApproveStudent(student.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleApproveStudent(student.id);
+                                  }}
                                   className="bg-green-600 hover:bg-green-700"
                                 >
                                   <CheckCircle className="w-3 h-3" />
@@ -424,7 +566,10 @@ const StudentManagement = () => {
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  onClick={() => handleRejectStudent(student.id)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRejectStudent(student.id);
+                                  }}
                                   className="text-red-600 border-red-300 hover:bg-red-50"
                                 >
                                   <XCircle className="w-3 h-3" />
@@ -434,7 +579,10 @@ const StudentManagement = () => {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleDeleteStudent(student.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteStudent(student.id);
+                              }}
                               className="text-red-600 border-red-300 hover:bg-red-50"
                             >
                               <Trash2 className="w-3 h-3" />
@@ -460,7 +608,7 @@ const StudentManagement = () => {
                   <Card key={student.id}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="cursor-pointer flex-1" onClick={() => handleEditStudent(student)}>
                           <h4 className="font-medium">{student.name}</h4>
                           <p className="text-sm text-gray-600">{student.rollNumber} • {student.email}</p>
                           <p className="text-xs text-gray-500">{student.year} • Section {student.section}</p>
