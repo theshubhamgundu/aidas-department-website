@@ -28,23 +28,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserRole(session.user.id)
-      }
+      if (session?.user) fetchUserRole(session.user.id)
       setLoading(false)
     })
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserRole(session.user.id)
-      } else {
-        setUserRole(null)
-      }
+      if (session?.user) fetchUserRole(session.user.id)
+      else setUserRole(null)
       setLoading(false)
     })
 
@@ -63,16 +56,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserRole(data?.role || 'student')
     } catch (error) {
       console.error('Error fetching user role:', error)
-      setUserRole('student') // Default to student
+      setUserRole('student')
     }
   }
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       toast.success('Signed in successfully')
     } catch (error: any) {
@@ -83,35 +73,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
-      // 1. Check if student exists in student list
-      const { data: studentData, error: matchError } = await supabase
-        .from('students')
+      // ✅ Match against verified_students table
+      const { data: verifiedStudent, error: matchError } = await supabase
+        .from('verified_students')
         .select('*')
-        .eq('rollNumber', userData.rollNumber)
-        .eq('name', userData.name)
+        .eq('H.T No.', userData.rollNumber.trim().toUpperCase())
+        .eq('Student Name', userData.name.trim())
+        .eq('Year', userData.year.trim())
         .single()
 
-      if (matchError || !studentData) {
-        throw new Error('Student record not found. Please contact the department.')
+      if (matchError || !verifiedStudent) {
+        throw new Error('You are not a verified student. Please contact the department.')
       }
 
-      // 2. Sign up user
+      // ✅ Register in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password
       })
       if (error) throw error
 
-      // 3. Create user profile
+      // ✅ Create profile record
       if (data.user) {
-        await supabase
-          .from('user_profiles')
-          .insert([{
-            id: data.user.id,
-            email: email,
-            role: 'student',
-            ...userData
-          }])
+        await supabase.from('user_profiles').insert([{
+          id: data.user.id,
+          email,
+          role: 'student',
+          ...userData
+        }])
       }
 
       toast.success('Account created successfully')
