@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,51 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
 import StudentManagement from '../components/StudentManagement';
+import AddCourseModal from '../components/AddCourseModal';
+import CreateTimetableModal from '../components/CreateTimetableModal';
+import AttendanceUploadModal from '../components/AttendanceUploadModal';
+import ExportDataModal from '../components/ExportDataModal';
+
+interface Course {
+  id: number;
+  name: string;
+  code: string;
+  credits: number;
+  semester: number;
+  professor: string;
+  description: string;
+}
+
+interface Timetable {
+  id: number;
+  year: string;
+  section: string;
+  batch: string;
+  slots: any[];
+}
+
+interface Student {
+  id: number;
+  rollNumber: string;
+  name: string;
+  year: string;
+  email: string;
+  section: string;
+  semester: string;
+  cgpa: string;
+  attendance: string;
+  status: string;
+  phone: string;
+  address: string;
+  parentName: string;
+  parentPhone: string;
+  dateOfBirth: string;
+  bloodGroup: string;
+  category: string;
+  admissionDate: string;
+  hostelDetails: string;
+  emergencyContact: string;
+}
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +62,27 @@ const AdminDashboard = () => {
   const [approvedStudents] = useState([
     { id: 3, name: 'Alice Johnson', rollNumber: '21BCT001', email: 'alice@vit.ac.in', year: '3rd Year', status: 'approved' },
     { id: 4, name: 'Bob Wilson', rollNumber: '21BCT002', email: 'bob@vit.ac.in', year: '2nd Year', status: 'approved' }
+  ]);
+
+  const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
+  const [isCreateTimetableModalOpen, setIsCreateTimetableModalOpen] = useState(false);
+  const [isAttendanceUploadModalOpen, setIsAttendanceUploadModalOpen] = useState(false);
+  const [isExportDataModalOpen, setIsExportDataModalOpen] = useState(false);
+
+  const [courses, setCourses] = useState<Course[]>([
+    { id: 1, name: 'Machine Learning', code: 'ML101', credits: 4, semester: 6, professor: 'Prof. Dr. Sharma', description: 'Introduction to Machine Learning concepts' },
+    { id: 2, name: 'Data Structures & Algorithms', code: 'DSA201', credits: 4, semester: 3, professor: 'Prof. Dr. Patel', description: 'Fundamental data structures and algorithms' },
+    { id: 3, name: 'Database Management', code: 'DBMS301', credits: 3, semester: 4, professor: 'Prof. Dr. Kumar', description: 'Database design and management' }
+  ]);
+
+  const [timetables, setTimetables] = useState<Timetable[]>([
+    { id: 1, year: '2nd Year', section: 'A', batch: 'Morning', slots: [] },
+    { id: 2, year: '3rd Year', section: 'A', batch: 'Morning', slots: [] }
+  ]);
+
+  const [allStudents, setAllStudents] = useState<Student[]>([
+    ...pendingStudents.map(s => ({ ...s, phone: '', address: '', parentName: '', parentPhone: '', dateOfBirth: '', bloodGroup: '', category: '', admissionDate: '', hostelDetails: '', emergencyContact: '' })),
+    ...approvedStudents.map(s => ({ ...s, phone: '', address: '', parentName: '', parentPhone: '', dateOfBirth: '', bloodGroup: '', category: '', admissionDate: '', hostelDetails: '', emergencyContact: '' }))
   ]);
 
   const handleLogout = () => {
@@ -35,6 +100,66 @@ const AdminDashboard = () => {
   const handleRejectStudent = (studentId: number) => {
     toast.error('Student registration rejected');
     console.log('Rejecting student:', studentId);
+  };
+
+  const handleAddCourse = (newCourse: Omit<Course, 'id'>) => {
+    const course = {
+      ...newCourse,
+      id: Math.max(...courses.map(c => c.id), 0) + 1
+    };
+    setCourses([...courses, course]);
+    console.log('Course added:', course);
+  };
+
+  const handleCreateTimetable = (newTimetable: Omit<Timetable, 'id'>) => {
+    const timetable = {
+      ...newTimetable,
+      id: Math.max(...timetables.map(t => t.id), 0) + 1
+    };
+    setTimetables([...timetables, timetable]);
+    console.log('Timetable created:', timetable);
+  };
+
+  const handleUploadAttendance = (attendanceData: any[]) => {
+    console.log('Uploading attendance data:', attendanceData);
+    
+    // Update student attendance
+    const updatedStudents = allStudents.map(student => {
+      const attendanceRecord = attendanceData.find(record => 
+        record.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
+      );
+      
+      if (attendanceRecord) {
+        return { ...student, attendance: attendanceRecord.attendance };
+      }
+      
+      return student;
+    });
+
+    setAllStudents(updatedStudents);
+    console.log('Students updated with new attendance:', updatedStudents.filter(s => 
+      attendanceData.some(record => record.rollNumber.toUpperCase() === s.rollNumber.toUpperCase())
+    ));
+  };
+
+  const handleBackupDatabase = () => {
+    const data = {
+      students: allStudents,
+      courses: courses,
+      timetables: timetables,
+      exportDate: new Date().toISOString()
+    };
+    
+    const jsonContent = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `database_backup_${new Date().toDateString().replace(/\s/g, '_')}.json`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast.success('Database backup created successfully');
   };
 
   return (
@@ -175,29 +300,18 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold">Machine Learning</h3>
-                        <p className="text-sm text-gray-600">Credits: 4 | Semester: 6</p>
-                        <p className="text-xs text-gray-500">Prof. Dr. Sharma</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold">Data Structures & Algorithms</h3>
-                        <p className="text-sm text-gray-600">Credits: 4 | Semester: 3</p>
-                        <p className="text-xs text-gray-500">Prof. Dr. Patel</p>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold">Database Management</h3>
-                        <p className="text-sm text-gray-600">Credits: 3 | Semester: 4</p>
-                        <p className="text-xs text-gray-500">Prof. Dr. Kumar</p>
-                      </CardContent>
-                    </Card>
+                    {courses.map((course) => (
+                      <Card key={course.id}>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold">{course.name}</h3>
+                          <p className="text-sm text-gray-600">Credits: {course.credits} | Semester: {course.semester}</p>
+                          <p className="text-xs text-gray-500">{course.professor}</p>
+                          <p className="text-xs text-gray-400 mt-1">{course.code}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <Button>Add New Course</Button>
+                  <Button onClick={() => setIsAddCourseModalOpen(true)}>Add New Course</Button>
                 </div>
               </CardContent>
             </Card>
@@ -212,22 +326,17 @@ const AdminDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold">2nd Year - Section A</h3>
-                        <p className="text-sm text-gray-600">Morning Batch | 9:00 AM - 4:00 PM</p>
-                        <Button size="sm" variant="outline" className="mt-2">View/Edit</Button>
-                      </CardContent>
-                    </Card>
-                    <Card>
-                      <CardContent className="p-4">
-                        <h3 className="font-semibold">3rd Year - Section A</h3>
-                        <p className="text-sm text-gray-600">Morning Batch | 9:00 AM - 4:00 PM</p>
-                        <Button size="sm" variant="outline" className="mt-2">View/Edit</Button>
-                      </CardContent>
-                    </Card>
+                    {timetables.map((timetable) => (
+                      <Card key={timetable.id}>
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold">{timetable.year} - Section {timetable.section}</h3>
+                          <p className="text-sm text-gray-600">{timetable.batch} Batch | 9:00 AM - 4:00 PM</p>
+                          <Button size="sm" variant="outline" className="mt-2">View/Edit</Button>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
-                  <Button>Create New Timetable</Button>
+                  <Button onClick={() => setIsCreateTimetableModalOpen(true)}>Create New Timetable</Button>
                 </div>
               </CardContent>
             </Card>
@@ -255,10 +364,16 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div>
+                    <h3 className="text-lg font-semibold mb-4">Data Management</h3>
+                    <div className="space-y-4">
+                      <Button variant="outline" onClick={handleBackupDatabase}>Backup Database</Button>
+                      <Button variant="outline" onClick={() => setIsExportDataModalOpen(true)}>Export Student Data</Button>
+                      <Button variant="outline" onClick={() => setIsAttendanceUploadModalOpen(true)}>Upload Attendance</Button>
+                    </div>
+                  </div>
+                  <div>
                     <h3 className="text-lg font-semibold mb-4">System Settings</h3>
                     <div className="space-y-4">
-                      <Button variant="outline">Backup Database</Button>
-                      <Button variant="outline">Export Student Data</Button>
                       <Button variant="outline">System Maintenance</Button>
                     </div>
                   </div>
@@ -268,6 +383,31 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Modals */}
+      <AddCourseModal
+        isOpen={isAddCourseModalOpen}
+        onClose={() => setIsAddCourseModalOpen(false)}
+        onAdd={handleAddCourse}
+      />
+
+      <CreateTimetableModal
+        isOpen={isCreateTimetableModalOpen}
+        onClose={() => setIsCreateTimetableModalOpen(false)}
+        onAdd={handleCreateTimetable}
+      />
+
+      <AttendanceUploadModal
+        isOpen={isAttendanceUploadModalOpen}
+        onClose={() => setIsAttendanceUploadModalOpen(false)}
+        onUpload={handleUploadAttendance}
+      />
+
+      <ExportDataModal
+        isOpen={isExportDataModalOpen}
+        onClose={() => setIsExportDataModalOpen(false)}
+        students={allStudents}
+      />
     </div>
   );
 };
