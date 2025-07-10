@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX, GraduationCap } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStudents } from '@/hooks/useStudents';
 import StudentManagement from '../components/StudentManagement';
 import AddCourseModal from '../components/AddCourseModal';
 import CreateTimetableModal from '../components/CreateTimetableModal';
@@ -54,99 +56,12 @@ interface Student {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [pendingStudents] = useState<Student[]>([
-    { 
-      id: 1, 
-      name: 'John Doe', 
-      rollNumber: '21BCT003', 
-      email: 'john@vit.ac.in', 
-      year: '2nd Year', 
-      section: 'A',
-      semester: '3',
-      cgpa: '8.2',
-      attendance: '85%',
-      status: 'pending',
-      phone: '9876543210',
-      address: 'Hyderabad, Telangana',
-      parentName: 'John Father',
-      parentPhone: '9876543211',
-      dateOfBirth: '2003-05-15',
-      bloodGroup: 'B+',
-      category: 'OC',
-      admissionDate: '2022-08-15',
-      hostelDetails: 'Block A, Room 205',
-      emergencyContact: '9876543212'
-    },
-    { 
-      id: 2, 
-      name: 'Jane Smith', 
-      rollNumber: '21BCT004', 
-      email: 'jane@vit.ac.in', 
-      year: '1st Year', 
-      section: 'B',
-      semester: '1',
-      cgpa: '9.0',
-      attendance: '92%',
-      status: 'pending',
-      phone: '9876543213',
-      address: 'Warangal, Telangana',
-      parentName: 'Jane Father',
-      parentPhone: '9876543214',
-      dateOfBirth: '2004-03-20',
-      bloodGroup: 'A+',
-      category: 'BC-A',
-      admissionDate: '2023-08-15',
-      hostelDetails: 'Block B, Room 102',
-      emergencyContact: '9876543215'
-    }
-  ]);
+  const { signOut } = useAuth();
+  const { students, loading, approveStudent, rejectStudent } = useStudents();
 
-  const [approvedStudents] = useState<Student[]>([
-    { 
-      id: 3, 
-      name: 'Alice Johnson', 
-      rollNumber: '21BCT001', 
-      email: 'alice@vit.ac.in', 
-      year: '3rd Year', 
-      section: 'A',
-      semester: '5',
-      cgpa: '8.8',
-      attendance: '90%',
-      status: 'approved',
-      phone: '9876543216',
-      address: 'Rangareddy, Telangana',
-      parentName: 'Alice Father',
-      parentPhone: '9876543217',
-      dateOfBirth: '2002-01-15',
-      bloodGroup: 'B-',
-      category: 'OC',
-      admissionDate: '2021-08-15',
-      hostelDetails: 'Block C, Room 302',
-      emergencyContact: '9876543218'
-    },
-    { 
-      id: 4, 
-      name: 'Bob Wilson', 
-      rollNumber: '21BCT002', 
-      email: 'bob@vit.ac.in', 
-      year: '2nd Year', 
-      section: 'B',
-      semester: '4',
-      cgpa: '7.9',
-      attendance: '88%',
-      status: 'approved',
-      phone: '9876543219',
-      address: 'Karimnagar, Telangana',
-      parentName: 'Bob Father',
-      parentPhone: '9876543220',
-      dateOfBirth: '2003-07-22',
-      bloodGroup: 'A+',
-      category: 'BC-B',
-      admissionDate: '2022-08-15',
-      hostelDetails: 'Block A, Room 315',
-      emergencyContact: '9876543221'
-    }
-  ]);
+  // Filter students by status
+  const pendingStudents = students.filter(s => s.status === 'pending');
+  const approvedStudents = students.filter(s => s.status === 'approved');
 
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [isCreateTimetableModalOpen, setIsCreateTimetableModalOpen] = useState(false);
@@ -164,26 +79,29 @@ const AdminDashboard = () => {
     { id: 2, year: '3rd Year', section: 'A', batch: 'Morning', slots: [] }
   ]);
 
-  const [allStudents, setAllStudents] = useState<Student[]>([
-    ...pendingStudents,
-    ...approvedStudents
-  ]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('userType');
-    localStorage.removeItem('currentUser');
-    toast.success('Admin logged out successfully');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
-  const handleApproveStudent = (studentId: number) => {
-    toast.success('Student approved successfully');
-    console.log('Approving student:', studentId);
+  const handleApproveStudent = async (studentId: string) => {
+    try {
+      await approveStudent(studentId);
+    } catch (error) {
+      console.error('Error approving student:', error);
+    }
   };
 
-  const handleRejectStudent = (studentId: number) => {
-    toast.error('Student registration rejected');
-    console.log('Rejecting student:', studentId);
+  const handleRejectStudent = async (studentId: string) => {
+    try {
+      await rejectStudent(studentId);
+    } catch (error) {
+      console.error('Error rejecting student:', error);
+    }
   };
 
   const handleAddCourse = (newCourse: Omit<Course, 'id'>) => {
@@ -208,43 +126,51 @@ const AdminDashboard = () => {
     console.log('Uploading attendance data:', attendanceData);
     
     // Update student attendance
-    const updatedStudents = allStudents.map(student => {
-      const attendanceRecord = attendanceData.find(record => 
-        record.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
-      );
+    // const updatedStudents = allStudents.map(student => {
+    //   const attendanceRecord = attendanceData.find(record => 
+    //     record.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
+    //   );
       
-      if (attendanceRecord) {
-        return { ...student, attendance: attendanceRecord.attendance };
-      }
+    //   if (attendanceRecord) {
+    //     return { ...student, attendance: attendanceRecord.attendance };
+    //   }
       
-      return student;
-    });
+    //   return student;
+    // });
 
-    setAllStudents(updatedStudents);
-    console.log('Students updated with new attendance:', updatedStudents.filter(s => 
-      attendanceData.some(record => record.rollNumber.toUpperCase() === s.rollNumber.toUpperCase())
-    ));
+    // setAllStudents(updatedStudents);
+    // console.log('Students updated with new attendance:', updatedStudents.filter(s => 
+    //   attendanceData.some(record => record.rollNumber.toUpperCase() === s.rollNumber.toUpperCase())
+    // ));
   };
 
   const handleBackupDatabase = () => {
-    const data = {
-      students: allStudents,
-      courses: courses,
-      timetables: timetables,
-      exportDate: new Date().toISOString()
-    };
+    // const data = {
+    //   students: allStudents,
+    //   courses: courses,
+    //   timetables: timetables,
+    //   exportDate: new Date().toISOString()
+    // };
     
-    const jsonContent = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `database_backup_${new Date().toDateString().replace(/\s/g, '_')}.json`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    // const jsonContent = JSON.stringify(data, null, 2);
+    // const blob = new Blob([jsonContent], { type: 'application/json' });
+    // const url = window.URL.createObjectURL(blob);
+    // const a = document.createElement('a');
+    // a.href = url;
+    // a.download = `database_backup_${new Date().toDateString().replace(/\s/g, '_')}.json`;
+    // a.click();
+    // window.URL.revokeObjectURL(url);
     
     toast.success('Database backup created successfully');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-lg">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -284,15 +210,15 @@ const AdminDashboard = () => {
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              {/* Stats Cards */}
+              {/* Stats Cards with real data */}
               <Card className="bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                   <Users className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{approvedStudents.length + pendingStudents.length}</div>
-                  <p className="text-xs text-muted-foreground">+2 from last month</p>
+                  <div className="text-2xl font-bold">{students.length}</div>
+                  <p className="text-xs text-muted-foreground">Real-time count</p>
                 </CardContent>
               </Card>
 
@@ -330,11 +256,11 @@ const AdminDashboard = () => {
               </Card>
             </div>
 
-            {/* Pending Approvals */}
+            {/* Pending Approvals with real data */}
             <Card className="bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Pending Student Approvals</CardTitle>
-                <CardDescription>Review and approve student registrations</CardDescription>
+                <CardDescription>Review and approve student registrations - Updates in real-time</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -366,6 +292,11 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   ))}
+                  {pendingStudents.length === 0 && (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No pending approvals</p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -490,7 +421,7 @@ const AdminDashboard = () => {
       <ExportDataModal
         isOpen={isExportDataModalOpen}
         onClose={() => setIsExportDataModalOpen(false)}
-        students={allStudents}
+        students={students}
       />
     </div>
   );

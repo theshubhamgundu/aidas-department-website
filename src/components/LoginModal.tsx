@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useStudents } from '@/hooks/useStudents';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -23,14 +25,25 @@ interface StudentFormData {
   address: string;
   parentName: string;
   parentPhone: string;
+  dateOfBirth: string;
+  bloodGroup: string;
+  category: string;
+  admissionDate: string;
+  hostelDetails: string;
+  emergencyContact: string;
 }
 
 export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
   const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
+  const { addStudent } = useStudents();
+  
   const [showPassword, setShowPassword] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [loading, setLoading] = useState(false);
+  
   const [loginData, setLoginData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   
@@ -44,81 +57,100 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
     semester: '1',
     address: '',
     parentName: '',
-    parentPhone: ''
+    parentPhone: '',
+    dateOfBirth: '',
+    bloodGroup: 'O+',
+    category: 'OC',
+    admissionDate: new Date().toISOString().split('T')[0],
+    hostelDetails: '',
+    emergencyContact: ''
   });
 
   if (!isOpen) return null;
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    if (type === 'admin') {
-      if (loginData.username === 'admin' && loginData.password === 'admin123') {
-        // Store admin session
-        localStorage.setItem('userType', 'admin');
-        localStorage.setItem('currentUser', JSON.stringify({ username: 'admin', type: 'admin' }));
-        
-        toast.success('Admin login successful!');
-        onClose();
-        
-        // Redirect to admin dashboard
-        setTimeout(() => {
+    try {
+      await signIn(loginData.email, loginData.password);
+      onClose();
+      
+      // Navigate based on user role (will be handled by auth context)
+      setTimeout(() => {
+        if (type === 'admin') {
           navigate('/admin-dashboard');
-        }, 500);
-      } else {
-        toast.error('Invalid admin credentials');
-      }
-    } else {
-      // Student login logic - check if roll number exists and is approved
-      const sampleStudents = [
-        { rollNumber: '21BCT001', name: 'Alice Johnson', year: '3rd Year', section: 'A', status: 'approved' },
-        { rollNumber: '21BCT002', name: 'Bob Wilson', year: '2nd Year', section: 'B', status: 'approved' }
-      ];
-      
-      const student = sampleStudents.find(s => s.rollNumber === loginData.username);
-      
-      if (student && student.status === 'approved') {
-        // Store student session
-        localStorage.setItem('userType', 'student');
-        localStorage.setItem('currentUser', JSON.stringify(student));
-        
-        toast.success('Student login successful!');
-        onClose();
-        
-        // Redirect to student dashboard
-        setTimeout(() => {
+        } else {
           navigate('/student-dashboard');
-        }, 500);
-      } else if (student && student.status === 'pending') {
-        toast.error('Your account is pending approval. Please wait for admin approval.');
-      } else {
-        toast.error('Invalid roll number or account not found');
-      }
+        }
+      }, 500);
+    } catch (error) {
+      console.error('Login error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleStudentRegistration = (e: React.FormEvent) => {
+  const handleStudentRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Here you would typically send the data to your backend
-    console.log('Student registration data:', studentData);
-    toast.success('Registration submitted! Please wait for admin approval.');
-    
-    // Reset form and close modal
-    setStudentData({
-      name: '',
-      rollNumber: '',
-      email: '',
-      phone: '',
-      year: '1st Year',
-      section: 'A',
-      semester: '1',
-      address: '',
-      parentName: '',
-      parentPhone: ''
-    });
-    setIsRegistering(false);
-    onClose();
+    try {
+      // Create auth account
+      await signUp(studentData.email, 'student123', {
+        name: studentData.name,
+        roll_number: studentData.rollNumber
+      });
+
+      // Add student record to database
+      await addStudent({
+        roll_number: studentData.rollNumber,
+        name: studentData.name,
+        email: studentData.email,
+        phone: studentData.phone,
+        year: studentData.year,
+        section: studentData.section,
+        semester: studentData.semester,
+        cgpa: '0.0',
+        attendance: '0%',
+        status: 'pending',
+        address: studentData.address,
+        parent_name: studentData.parentName,
+        parent_phone: studentData.parentPhone,
+        date_of_birth: studentData.dateOfBirth,
+        blood_group: studentData.bloodGroup,
+        category: studentData.category,
+        admission_date: studentData.admissionDate,
+        hostel_details: studentData.hostelDetails,
+        emergency_contact: studentData.emergencyContact
+      });
+      
+      // Reset form and close modal
+      setStudentData({
+        name: '',
+        rollNumber: '',
+        email: '',
+        phone: '',
+        year: '1st Year',
+        section: 'A',
+        semester: '1',
+        address: '',
+        parentName: '',
+        parentPhone: '',
+        dateOfBirth: '',
+        bloodGroup: 'O+',
+        category: 'OC',
+        admissionDate: new Date().toISOString().split('T')[0],
+        hostelDetails: '',
+        emergencyContact: ''
+      });
+      setIsRegistering(false);
+      onClose();
+    } catch (error) {
+      console.error('Registration error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -171,52 +203,51 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
             // Login Form
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="username" className="text-sm font-medium text-gray-700">
-                  {type === 'admin' ? 'Username' : 'Roll Number'}
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
                 </Label>
                 <Input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={loginData.username}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={loginData.email}
                   onChange={handleInputChange}
-                  placeholder={type === 'admin' ? 'Enter admin username' : 'Enter your roll number'}
+                  placeholder="Enter your email"
                   className="mt-1"
                   required
                 />
               </div>
 
-              {type === 'admin' && (
-                <div>
-                  <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                    Password
-                  </Label>
-                  <div className="relative mt-1">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      id="password"
-                      name="password"
-                      value={loginData.password}
-                      onChange={handleInputChange}
-                      placeholder="Enter admin password"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+              <div>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    value={loginData.password}
+                    onChange={handleInputChange}
+                    placeholder="Enter password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-              )}
+              </div>
 
               <Button
                 type="submit"
+                disabled={loading}
                 className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
               >
-                {type === 'admin' ? 'Login as Admin' : 'Login as Student'}
+                {loading ? 'Signing in...' : (type === 'admin' ? 'Login as Admin' : 'Login as Student')}
               </Button>
 
               {type === 'student' && (
@@ -233,22 +264,6 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
                   </Button>
                 </div>
               )}
-
-              {/* Demo Credentials */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
-                <p className="font-medium text-blue-800 mb-2">Demo Credentials:</p>
-                {type === 'admin' ? (
-                  <div className="text-blue-700">
-                    <p>Username: <code className="bg-blue-100 px-1 rounded">admin</code></p>
-                    <p>Password: <code className="bg-blue-100 px-1 rounded">admin123</code></p>
-                  </div>
-                ) : (
-                  <div className="text-blue-700">
-                    <p>Approved Students: <code className="bg-blue-100 px-1 rounded">21BCT001</code>, <code className="bg-blue-100 px-1 rounded">21BCT002</code></p>
-                    <p>Pending Approval: <code className="bg-blue-100 px-1 rounded">21BCT003</code></p>
-                  </div>
-                )}
-              </div>
             </form>
           ) : (
             // Student Registration Form
@@ -408,9 +423,10 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
                 </Button>
                 <Button
                   type="submit"
+                  disabled={loading}
                   className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600"
                 >
-                  Submit Registration
+                  {loading ? 'Registering...' : 'Submit Registration'}
                 </Button>
               </div>
             </form>
