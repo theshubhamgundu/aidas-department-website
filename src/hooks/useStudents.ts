@@ -6,8 +6,9 @@ export const useStudents = () => {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch all students
+  // ✅ Fetch all students
   const fetchStudents = async () => {
+    setLoading(true)
     try {
       const { data, error } = await supabase
         .from('students')
@@ -24,7 +25,7 @@ export const useStudents = () => {
     }
   }
 
-  // Add new student (registration)
+  // ✅ Add new student
   const addStudent = async (studentData: Omit<Student, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
@@ -45,19 +46,24 @@ export const useStudents = () => {
     }
   }
 
-  // Update student
-  const updateStudent = async (id: string, updates: Partial<Student>) => {
+  // ✅ Update student safely (with ID check)
+  const updateStudent = async (rollNumber: string, updates: Partial<Student>) => {
+    if (!rollNumber) {
+      toast.error('Invalid roll number for update')
+      return null
+    }
+
     try {
       const { data, error } = await supabase
         .from('students')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('rollNumber', id)
+        .eq('rollNumber', rollNumber)
         .select()
         .single()
 
       if (error) throw error
 
-      setStudents(prev => prev.map(s => s.rollNumber === id ? data : s))
+      setStudents(prev => prev.map(s => s.rollNumber === rollNumber ? data : s))
       toast.success('Student updated successfully')
       return data
     } catch (error) {
@@ -67,17 +73,22 @@ export const useStudents = () => {
     }
   }
 
-  // Delete student
-  const deleteStudent = async (id: string) => {
+  // ✅ Delete student safely
+  const deleteStudent = async (rollNumber: string) => {
+    if (!rollNumber) {
+      toast.error('Invalid roll number for deletion')
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('students')
         .delete()
-        .eq('rollNumber', id)
+        .eq('rollNumber', rollNumber)
 
       if (error) throw error
 
-      setStudents(prev => prev.filter(s => s.rollNumber !== id))
+      setStudents(prev => prev.filter(s => s.rollNumber !== rollNumber))
       toast.success('Student deleted successfully')
     } catch (error) {
       console.error('Error deleting student:', error)
@@ -86,32 +97,40 @@ export const useStudents = () => {
     }
   }
 
-  // Approve student
-  const approveStudent = async (id: string) => {
-    const result = await updateStudent(id, { status: 'approved' })
+  // ✅ Approve student
+  const approveStudent = async (rollNumber: string) => {
+    if (!rollNumber) {
+      toast.error('Missing roll number')
+      return
+    }
+
+    const result = await updateStudent(rollNumber, { status: 'approved' })
     await fetchStudents()
     return result
   }
 
-  // Reject student
-  const rejectStudent = async (id: string) => {
-    const result = await updateStudent(id, { status: 'rejected' })
+  // ✅ Reject student
+  const rejectStudent = async (rollNumber: string) => {
+    if (!rollNumber) {
+      toast.error('Missing roll number')
+      return
+    }
+
+    const result = await updateStudent(rollNumber, { status: 'rejected' })
     await fetchStudents()
     return result
   }
 
+  // ✅ Real-time updates
   useEffect(() => {
     fetchStudents()
 
-    // Set up real-time subscription
     const subscription = supabase
       .channel('students_changes')
-      .on('postgres_changes',
+      .on(
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'students' },
-        (payload) => {
-          console.log('Real-time update:', payload)
-          fetchStudents() // Refetch data on any change
-        }
+        () => fetchStudents()
       )
       .subscribe()
 
