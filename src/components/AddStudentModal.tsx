@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +8,6 @@ import { X } from 'lucide-react';
 interface Student {
   rollNumber: string;
   name: string;
-  year: string;
   email: string;
   section: string;
   semester: string;
@@ -36,7 +34,6 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
   const [formData, setFormData] = useState<Student>({
     rollNumber: '',
     name: '',
-    year: '1st Year',
     email: '',
     section: 'A',
     semester: '1',
@@ -61,12 +58,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
     onAdd(formData);
     onClose();
-    
+
     // Reset form
     setFormData({
       rollNumber: '',
       name: '',
-      year: '1st Year',
       email: '',
       section: 'A',
       semester: '1',
@@ -145,20 +141,6 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
             <div>
               <h3 className="text-lg font-semibold mb-4">Academic Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Year</label>
-                  <Select value={formData.year} onValueChange={(value) => handleChange('year', value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1st Year">1st Year</SelectItem>
-                      <SelectItem value="2nd Year">2nd Year</SelectItem>
-                      <SelectItem value="3rd Year">3rd Year</SelectItem>
-                      <SelectItem value="4th Year">4th Year</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Section</label>
                   <Select value={formData.section} onValueChange={(value) => handleChange('section', value)}>
