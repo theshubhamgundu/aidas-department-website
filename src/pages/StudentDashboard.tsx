@@ -10,14 +10,24 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Clear any stored user data
     localStorage.removeItem('userType');
     localStorage.removeItem('currentUser');
     toast.success('Logged out successfully');
     navigate('/');
   };
 
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  // Get current user data safely
+  const getCurrentUser = () => {
+    try {
+      const userData = localStorage.getItem('currentUser');
+      return userData ? JSON.parse(userData) : {};
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return {};
+    }
+  };
+
+  const currentUser = getCurrentUser();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -33,7 +43,9 @@ const StudentDashboard = () => {
                 <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   Student Dashboard
                 </h1>
-                <p className="text-xs text-gray-600">Welcome back, {currentUser.name || currentUser.rollNumber}</p>
+                <p className="text-xs text-gray-600">
+                  Welcome back, {currentUser.name || currentUser.rollNumber || 'Student'}
+                </p>
               </div>
             </div>
             <Button onClick={handleLogout} variant="outline" size="sm" className="flex items-center space-x-2">
@@ -58,13 +70,44 @@ const StudentDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                <p><strong>Roll Number:</strong> {currentUser.rollNumber}</p>
-                <p><strong>Name:</strong> {currentUser.name}</p>
-                <p><strong>Year:</strong> {currentUser.year}</p>
-                <p><strong>Section:</strong> {currentUser.section}</p>
+                <p><strong>Roll Number:</strong> {currentUser.rollNumber || 'N/A'}</p>
+                <p><strong>Name:</strong> {currentUser.name || 'N/A'}</p>
+                <p><strong>Year:</strong> {currentUser.year || 'N/A'}</p>
+                <p><strong>Section:</strong> {currentUser.section || 'N/A'}</p>
+                <p><strong>Email:</strong> {currentUser.email || 'N/A'}</p>
               </div>
               <Button className="w-full mt-4" variant="outline">
                 Edit Profile
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Academic Performance Card */}
+          <Card className="bg-white/80 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Award className="w-5 h-5 text-yellow-600" />
+                <span>Academic Performance</span>
+              </CardTitle>
+              <CardDescription>View your academic performance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm">Current CGPA</span>
+                  <span className="text-sm font-medium text-green-600">{currentUser.cgpa || '8.5'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Current Semester</span>
+                  <span className="text-sm font-medium text-blue-600">{currentUser.semester || 'N/A'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm">Attendance</span>
+                  <span className="text-sm font-medium text-purple-600">{currentUser.attendance || 'N/A'}</span>
+                </div>
+              </div>
+              <Button className="w-full mt-4" variant="outline">
+                View Detailed Results
               </Button>
             </CardContent>
           </Card>
@@ -82,11 +125,15 @@ const StudentDashboard = () => {
               <div className="space-y-2">
                 <div className="p-2 bg-green-50 rounded border">
                   <p className="font-medium text-sm">Machine Learning</p>
-                  <p className="text-xs text-gray-600">Prof. Smith</p>
+                  <p className="text-xs text-gray-600">Credits: 4 | Prof. Dr. Sharma</p>
                 </div>
                 <div className="p-2 bg-blue-50 rounded border">
-                  <p className="font-medium text-sm">Data Structures</p>
-                  <p className="text-xs text-gray-600">Prof. Johnson</p>
+                  <p className="font-medium text-sm">Data Structures & Algorithms</p>
+                  <p className="text-xs text-gray-600">Credits: 4 | Prof. Dr. Patel</p>
+                </div>
+                <div className="p-2 bg-purple-50 rounded border">
+                  <p className="font-medium text-sm">Database Management</p>
+                  <p className="text-xs text-gray-600">Credits: 3 | Prof. Dr. Kumar</p>
                 </div>
               </div>
               <Button className="w-full mt-4" variant="outline">
@@ -108,41 +155,19 @@ const StudentDashboard = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm">Overall</span>
-                  <span className="text-sm font-medium text-green-600">85%</span>
+                  <span className="text-sm font-medium text-green-600">{currentUser.attendance || '85%'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm">This Month</span>
                   <span className="text-sm font-medium text-blue-600">92%</span>
                 </div>
-              </div>
-              <Button className="w-full mt-4" variant="outline">
-                View Details
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Grades Card */}
-          <Card className="bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Award className="w-5 h-5 text-yellow-600" />
-                <span>Grades</span>
-              </CardTitle>
-              <CardDescription>View your academic performance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm">Current CGPA</span>
-                  <span className="text-sm font-medium text-green-600">8.5</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm">Semester GPA</span>
-                  <span className="text-sm font-medium text-blue-600">8.8</span>
+                  <span className="text-sm">This Week</span>
+                  <span className="text-sm font-medium text-purple-600">95%</span>
                 </div>
               </div>
               <Button className="w-full mt-4" variant="outline">
-                View Transcript
+                View Attendance Details
               </Button>
             </CardContent>
           </Card>
@@ -166,9 +191,13 @@ const StudentDashboard = () => {
                   <p className="text-xs font-medium">New Material</p>
                   <p className="text-xs text-gray-600">Lecture notes uploaded</p>
                 </div>
+                <div className="p-2 bg-green-50 rounded border">
+                  <p className="text-xs font-medium">Exam Schedule</p>
+                  <p className="text-xs text-gray-600">Mid-term exams next week</p>
+                </div>
               </div>
               <Button className="w-full mt-4" variant="outline">
-                View All
+                View All Notifications
               </Button>
             </CardContent>
           </Card>
@@ -189,6 +218,9 @@ const StudentDashboard = () => {
                 </Button>
                 <Button className="w-full" variant="outline" size="sm">
                   Fee Payment
+                </Button>
+                <Button className="w-full" variant="outline" size="sm">
+                  Hostel Services
                 </Button>
               </div>
             </CardContent>
