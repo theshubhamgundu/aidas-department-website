@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX, GraduationCap } from 'lucide-react';
+import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudents } from '@/hooks/useStudents';
@@ -13,68 +13,23 @@ import CreateTimetableModal from '../components/CreateTimetableModal';
 import AttendanceUploadModal from '../components/AttendanceUploadModal';
 import ExportDataModal from '../components/ExportDataModal';
 
-interface Course {
-  id: number;
-  name: string;
-  code: string;
-  credits: number;
-  semester: number;
-  professor: string;
-  description: string;
-}
-
-interface Timetable {
-  id: number;
-  year: string;
-  section: string;
-  batch: string;
-  slots: any[];
-}
-
-interface Student {
-  id: number;
-  rollNumber: string;
-  name: string;
-  year: string;
-  email: string;
-  section: string;
-  semester: string;
-  cgpa: string;
-  attendance: string;
-  status: string;
-  phone: string;
-  address: string;
-  parentName: string;
-  parentPhone: string;
-  dateOfBirth: string;
-  bloodGroup: string;
-  category: string;
-  admissionDate: string;
-  hostelDetails: string;
-  emergencyContact: string;
-}
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { students, loading, approveStudent, rejectStudent } = useStudents();
-
-  // Filter students by status
-  const pendingStudents = students.filter(s => s.status === 'pending');
-  const approvedStudents = students.filter(s => s.status === 'approved');
 
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [isCreateTimetableModalOpen, setIsCreateTimetableModalOpen] = useState(false);
   const [isAttendanceUploadModalOpen, setIsAttendanceUploadModalOpen] = useState(false);
   const [isExportDataModalOpen, setIsExportDataModalOpen] = useState(false);
 
-  const [courses, setCourses] = useState<Course[]>([
+  const [courses, setCourses] = useState([
     { id: 1, name: 'Machine Learning', code: 'ML101', credits: 4, semester: 6, professor: 'Prof. Dr. Sharma', description: 'Introduction to Machine Learning concepts' },
     { id: 2, name: 'Data Structures & Algorithms', code: 'DSA201', credits: 4, semester: 3, professor: 'Prof. Dr. Patel', description: 'Fundamental data structures and algorithms' },
     { id: 3, name: 'Database Management', code: 'DBMS301', credits: 3, semester: 4, professor: 'Prof. Dr. Kumar', description: 'Database design and management' }
   ]);
 
-  const [timetables, setTimetables] = useState<Timetable[]>([
+  const [timetables, setTimetables] = useState([
     { id: 1, year: '2nd Year', section: 'A', batch: 'Morning', slots: [] },
     { id: 2, year: '3rd Year', section: 'A', batch: 'Morning', slots: [] }
   ]);
@@ -88,7 +43,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleApproveStudent = async (studentId: string) => {
+  const handleApproveStudent = async (studentId) => {
     try {
       await approveStudent(studentId);
     } catch (error) {
@@ -96,7 +51,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleRejectStudent = async (studentId: string) => {
+  const handleRejectStudent = async (studentId) => {
     try {
       await rejectStudent(studentId);
     } catch (error) {
@@ -104,7 +59,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAddCourse = (newCourse: Omit<Course, 'id'>) => {
+  const handleAddCourse = (newCourse) => {
     const course = {
       ...newCourse,
       id: Math.max(...courses.map(c => c.id), 0) + 1
@@ -113,7 +68,7 @@ const AdminDashboard = () => {
     console.log('Course added:', course);
   };
 
-  const handleCreateTimetable = (newTimetable: Omit<Timetable, 'id'>) => {
+  const handleCreateTimetable = (newTimetable) => {
     const timetable = {
       ...newTimetable,
       id: Math.max(...timetables.map(t => t.id), 0) + 1
@@ -122,47 +77,16 @@ const AdminDashboard = () => {
     console.log('Timetable created:', timetable);
   };
 
-  const handleUploadAttendance = (attendanceData: any[]) => {
+  const handleUploadAttendance = (attendanceData) => {
     console.log('Uploading attendance data:', attendanceData);
-    
-    // Update student attendance
-    // const updatedStudents = allStudents.map(student => {
-    //   const attendanceRecord = attendanceData.find(record => 
-    //     record.rollNumber.toUpperCase() === student.rollNumber.toUpperCase()
-    //   );
-      
-    //   if (attendanceRecord) {
-    //     return { ...student, attendance: attendanceRecord.attendance };
-    //   }
-      
-    //   return student;
-    // });
-
-    // setAllStudents(updatedStudents);
-    // console.log('Students updated with new attendance:', updatedStudents.filter(s => 
-    //   attendanceData.some(record => record.rollNumber.toUpperCase() === s.rollNumber.toUpperCase())
-    // ));
   };
 
   const handleBackupDatabase = () => {
-    // const data = {
-    //   students: allStudents,
-    //   courses: courses,
-    //   timetables: timetables,
-    //   exportDate: new Date().toISOString()
-    // };
-    
-    // const jsonContent = JSON.stringify(data, null, 2);
-    // const blob = new Blob([jsonContent], { type: 'application/json' });
-    // const url = window.URL.createObjectURL(blob);
-    // const a = document.createElement('a');
-    // a.href = url;
-    // a.download = `database_backup_${new Date().toDateString().replace(/\s/g, '_')}.json`;
-    // a.click();
-    // window.URL.revokeObjectURL(url);
-    
     toast.success('Database backup created successfully');
   };
+
+  const pendingStudents = students.filter(s => s.status === 'pending');
+  const approvedStudents = students.filter(s => s.status === 'approved');
 
   if (loading) {
     return (
@@ -174,7 +98,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Header */}
       <header className="bg-white/90 backdrop-blur-md shadow-lg border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -183,9 +106,7 @@ const AdminDashboard = () => {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Admin Dashboard
-                </h1>
+                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Admin Dashboard</h1>
                 <p className="text-xs text-gray-600">AI & Data Science Department</p>
               </div>
             </div>
@@ -197,7 +118,6 @@ const AdminDashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="bg-white/80 backdrop-blur-sm">
@@ -210,7 +130,6 @@ const AdminDashboard = () => {
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-              {/* Stats Cards with real data */}
               <Card className="bg-white/80 backdrop-blur-sm">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Students</CardTitle>
@@ -250,13 +169,12 @@ const AdminDashboard = () => {
                   <BookOpen className="h-4 w-4 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">8</div>
+                  <div className="text-2xl font-bold">{courses.length}</div>
                   <p className="text-xs text-muted-foreground">This semester</p>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Pending Approvals with real data */}
             <Card className="bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle>Pending Student Approvals</CardTitle>
@@ -272,22 +190,11 @@ const AdminDashboard = () => {
                         <p className="text-xs text-gray-500">{student.year}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleApproveStudent(student.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <UserCheck className="w-4 h-4 mr-1" />
-                          Approve
+                        <Button size="sm" onClick={() => handleApproveStudent(student.id)} className="bg-green-600 hover:bg-green-700">
+                          <UserCheck className="w-4 h-4 mr-1" /> Approve
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => handleRejectStudent(student.id)}
-                          className="border-red-300 text-red-600 hover:bg-red-50"
-                        >
-                          <UserX className="w-4 h-4 mr-1" />
-                          Reject
+                        <Button size="sm" variant="outline" onClick={() => handleRejectStudent(student.id)} className="border-red-300 text-red-600 hover:bg-red-50">
+                          <UserX className="w-4 h-4 mr-1" /> Reject
                         </Button>
                       </div>
                     </div>
@@ -399,30 +306,10 @@ const AdminDashboard = () => {
         </Tabs>
       </main>
 
-      {/* Modals */}
-      <AddCourseModal
-        isOpen={isAddCourseModalOpen}
-        onClose={() => setIsAddCourseModalOpen(false)}
-        onAdd={handleAddCourse}
-      />
-
-      <CreateTimetableModal
-        isOpen={isCreateTimetableModalOpen}
-        onClose={() => setIsCreateTimetableModalOpen(false)}
-        onAdd={handleCreateTimetable}
-      />
-
-      <AttendanceUploadModal
-        isOpen={isAttendanceUploadModalOpen}
-        onClose={() => setIsAttendanceUploadModalOpen(false)}
-        onUpload={handleUploadAttendance}
-      />
-
-      <ExportDataModal
-        isOpen={isExportDataModalOpen}
-        onClose={() => setIsExportDataModalOpen(false)}
-        students={students}
-      />
+      <AddCourseModal isOpen={isAddCourseModalOpen} onClose={() => setIsAddCourseModalOpen(false)} onAdd={handleAddCourse} />
+      <CreateTimetableModal isOpen={isCreateTimetableModalOpen} onClose={() => setIsCreateTimetableModalOpen(false)} onAdd={handleCreateTimetable} />
+      <AttendanceUploadModal isOpen={isAttendanceUploadModalOpen} onClose={() => setIsAttendanceUploadModalOpen(false)} onUpload={handleUploadAttendance} />
+      <ExportDataModal isOpen={isExportDataModalOpen} onClose={() => setIsExportDataModalOpen(false)} students={students} />
     </div>
   );
 };
