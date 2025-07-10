@@ -31,42 +31,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user);
+        fetchUserRole(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user);
+        fetchUserRole(session.user.id);
       } else {
         setUserRole(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserRole = async (user: User) => {
+  const fetchUserRole = async (userId: string) => {
     try {
-      if (user.email === 'admin@aidas.com') {
-        setUserRole('admin');
-        return;
-      }
-
       const { data, error } = await supabase
         .from('user_profiles')
         .select('role')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
-      if (error) throw error;
-      setUserRole(data?.role || 'student');
+      if (error || !data) throw error || new Error('Role not found');
+      setUserRole(data.role);
     } catch (error) {
       console.error('Error fetching user role:', error);
-      setUserRole('student');
+      setUserRole(null);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,44 +72,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password,
       });
 
       if (authError) throw authError;
       toast.success('Signed in successfully');
-      const user = authData.user;
-      if (!user) throw new Error('User not found');
 
-      if (user.email === 'admin@aidas.com') {
-        setUser(user);
-        setUserRole('admin');
-        localStorage.setItem('userType', 'admin');
-        return;
-      }
+      const userId = authData.user?.id;
+      setUser(authData.user);
 
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('role, roll_number')
-        .eq('id', user.id)
+        .select('role, rollNumber')
+        .eq('id', userId)
         .single();
 
-      if (profileError || !profileData) throw profileError || new Error('User profile not found');
+      if (profileError || !profileData) throw profileError || new Error('Profile not found');
 
-      const { data: studentData, error: studentError } = await supabase
-        .from('students')
-        .select('*')
-        .eq('roll_number', profileData.roll_number)
-        .single();
+      const role = profileData.role;
+      setUserRole(role);
 
-      if (studentError || !studentData) throw studentError || new Error('Student data not found');
+      // Store student data only for students
+      if (role === 'student') {
+        const { data: studentData, error: studentError } = await supabase
+          .from('students')
+          .select('*')
+          .eq('rollNumber', profileData.rollNumber)
+          .single();
 
-      localStorage.setItem('currentUser', JSON.stringify(studentData));
-      localStorage.setItem('userType', profileData.role);
+        if (studentError || !studentData) throw studentError || new Error('Student data not found');
+        localStorage.setItem('currentUser', JSON.stringify(studentData));
+      }
 
-      setUser(user);
-      setUserRole(profileData.role);
+      localStorage.setItem('userType', role);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign in');
+      toast.error(error.message || 'Login failed');
       throw error;
     }
   };
@@ -136,6 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (signUpError) throw signUpError;
+
       const user = signUpData.user;
       if (!user) throw new Error("User creation failed");
 
@@ -143,9 +139,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('user_profiles')
         .insert([{
           id: user.id,
-          email: email,
+          email,
           role: 'student',
-          roll_number: userData.roll_number // ✅ updated column name
+          rollNumber: userData.roll_number
         }]);
 
       if (profileError) throw profileError;
@@ -162,24 +158,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+
       localStorage.removeItem('currentUser');
       localStorage.removeItem('userType');
+
+      setUser(null);
+      setUserRole(null);
+
       toast.success('Signed out successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to sign out');
+      toast.error(error.message || 'Sign-out failed');
       throw error;
     }
   };
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      userRole,
-      loading,
-      signIn,
-      signUp,
-      signOut
-    }}>
+    <AuthContext.Provider value={{ user, userRole, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
