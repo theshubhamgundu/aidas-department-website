@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useEffect, useState } from 'react'
+""import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
 import { toast } from 'sonner'
@@ -84,13 +83,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, userData: any) => {
     try {
+      // 1. Check if student exists in student list
+      const { data: studentData, error: matchError } = await supabase
+        .from('students')
+        .select('*')
+        .eq('rollNumber', userData.rollNumber)
+        .eq('name', userData.name)
+        .single()
+
+      if (matchError || !studentData) {
+        throw new Error('Student record not found. Please contact the department.')
+      }
+
+      // 2. Sign up user
       const { data, error } = await supabase.auth.signUp({
         email,
         password
       })
       if (error) throw error
 
-      // Create user profile
+      // 3. Create user profile
       if (data.user) {
         await supabase
           .from('user_profiles')
