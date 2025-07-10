@@ -54,14 +54,98 @@ interface Student {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [pendingStudents] = useState([
-    { id: 1, name: 'John Doe', rollNumber: '21BCT003', email: 'john@vit.ac.in', year: '2nd Year', status: 'pending' },
-    { id: 2, name: 'Jane Smith', rollNumber: '21BCT004', email: 'jane@vit.ac.in', year: '1st Year', status: 'pending' }
+  const [pendingStudents] = useState<Student[]>([
+    { 
+      id: 1, 
+      name: 'John Doe', 
+      rollNumber: '21BCT003', 
+      email: 'john@vit.ac.in', 
+      year: '2nd Year', 
+      section: 'A',
+      semester: '3',
+      cgpa: '8.2',
+      attendance: '85%',
+      status: 'pending',
+      phone: '9876543210',
+      address: 'Hyderabad, Telangana',
+      parentName: 'John Father',
+      parentPhone: '9876543211',
+      dateOfBirth: '2003-05-15',
+      bloodGroup: 'B+',
+      category: 'OC',
+      admissionDate: '2022-08-15',
+      hostelDetails: 'Block A, Room 205',
+      emergencyContact: '9876543212'
+    },
+    { 
+      id: 2, 
+      name: 'Jane Smith', 
+      rollNumber: '21BCT004', 
+      email: 'jane@vit.ac.in', 
+      year: '1st Year', 
+      section: 'B',
+      semester: '1',
+      cgpa: '9.0',
+      attendance: '92%',
+      status: 'pending',
+      phone: '9876543213',
+      address: 'Warangal, Telangana',
+      parentName: 'Jane Father',
+      parentPhone: '9876543214',
+      dateOfBirth: '2004-03-20',
+      bloodGroup: 'A+',
+      category: 'BC-A',
+      admissionDate: '2023-08-15',
+      hostelDetails: 'Block B, Room 102',
+      emergencyContact: '9876543215'
+    }
   ]);
 
-  const [approvedStudents] = useState([
-    { id: 3, name: 'Alice Johnson', rollNumber: '21BCT001', email: 'alice@vit.ac.in', year: '3rd Year', status: 'approved' },
-    { id: 4, name: 'Bob Wilson', rollNumber: '21BCT002', email: 'bob@vit.ac.in', year: '2nd Year', status: 'approved' }
+  const [approvedStudents] = useState<Student[]>([
+    { 
+      id: 3, 
+      name: 'Alice Johnson', 
+      rollNumber: '21BCT001', 
+      email: 'alice@vit.ac.in', 
+      year: '3rd Year', 
+      section: 'A',
+      semester: '5',
+      cgpa: '8.8',
+      attendance: '90%',
+      status: 'approved',
+      phone: '9876543216',
+      address: 'Rangareddy, Telangana',
+      parentName: 'Alice Father',
+      parentPhone: '9876543217',
+      dateOfBirth: '2002-01-15',
+      bloodGroup: 'B-',
+      category: 'OC',
+      admissionDate: '2021-08-15',
+      hostelDetails: 'Block C, Room 302',
+      emergencyContact: '9876543218'
+    },
+    { 
+      id: 4, 
+      name: 'Bob Wilson', 
+      rollNumber: '21BCT002', 
+      email: 'bob@vit.ac.in', 
+      year: '2nd Year', 
+      section: 'B',
+      semester: '4',
+      cgpa: '7.9',
+      attendance: '88%',
+      status: 'approved',
+      phone: '9876543219',
+      address: 'Karimnagar, Telangana',
+      parentName: 'Bob Father',
+      parentPhone: '9876543220',
+      dateOfBirth: '2003-07-22',
+      bloodGroup: 'A+',
+      category: 'BC-B',
+      admissionDate: '2022-08-15',
+      hostelDetails: 'Block A, Room 315',
+      emergencyContact: '9876543221'
+    }
   ]);
 
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
@@ -81,8 +165,8 @@ const AdminDashboard = () => {
   ]);
 
   const [allStudents, setAllStudents] = useState<Student[]>([
-    ...pendingStudents.map(s => ({ ...s, phone: '', address: '', parentName: '', parentPhone: '', dateOfBirth: '', bloodGroup: '', category: '', admissionDate: '', hostelDetails: '', emergencyContact: '' })),
-    ...approvedStudents.map(s => ({ ...s, phone: '', address: '', parentName: '', parentPhone: '', dateOfBirth: '', bloodGroup: '', category: '', admissionDate: '', hostelDetails: '', emergencyContact: '' }))
+    ...pendingStudents,
+    ...approvedStudents
   ]);
 
   const handleLogout = () => {
