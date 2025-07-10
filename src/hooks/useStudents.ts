@@ -34,7 +34,7 @@ export const useStudents = () => {
         .single()
 
       if (error) throw error
-      
+
       setStudents(prev => [data, ...prev])
       toast.success('Student registered successfully')
       return data
@@ -51,13 +51,13 @@ export const useStudents = () => {
       const { data, error } = await supabase
         .from('students')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
+        .eq('rollNumber', id)
         .select()
         .single()
 
       if (error) throw error
 
-      setStudents(prev => prev.map(s => s.id === id ? data : s))
+      setStudents(prev => prev.map(s => s.rollNumber === id ? data : s))
       toast.success('Student updated successfully')
       return data
     } catch (error) {
@@ -73,11 +73,11 @@ export const useStudents = () => {
       const { error } = await supabase
         .from('students')
         .delete()
-        .eq('id', id)
+        .eq('rollNumber', id)
 
       if (error) throw error
 
-      setStudents(prev => prev.filter(s => s.id !== id))
+      setStudents(prev => prev.filter(s => s.rollNumber !== id))
       toast.success('Student deleted successfully')
     } catch (error) {
       console.error('Error deleting student:', error)
@@ -106,7 +106,7 @@ export const useStudents = () => {
     // Set up real-time subscription
     const subscription = supabase
       .channel('students_changes')
-      .on('postgres_changes', 
+      .on('postgres_changes',
         { event: '*', schema: 'public', table: 'students' },
         (payload) => {
           console.log('Real-time update:', payload)
