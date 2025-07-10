@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react'
 import { supabase, Student } from '@/lib/supabase'
 import { toast } from 'sonner'
@@ -89,12 +88,16 @@ export const useStudents = () => {
 
   // Approve student
   const approveStudent = async (id: string) => {
-    return updateStudent(id, { status: 'approved' })
+    const result = await updateStudent(id, { status: 'approved' })
+    await fetchStudents()
+    return result
   }
 
   // Reject student
   const rejectStudent = async (id: string) => {
-    return updateStudent(id, { status: 'rejected' })
+    const result = await updateStudent(id, { status: 'rejected' })
+    await fetchStudents()
+    return result
   }
 
   useEffect(() => {
