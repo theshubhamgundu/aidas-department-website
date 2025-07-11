@@ -52,14 +52,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
+      // Get user email to determine if admin
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user?.email) throw userError || new Error('User not found');
+      
+      const email = user.email;
+      
+      // Check if this is an admin
+      const isAdmin = email.includes('@vit.ac.in') && (
+        email.includes('admin') || 
+        email.includes('faculty') || 
+        email.includes('hod') ||
+        email === 'admin@vit.ac.in'
+      );
 
-      if (error || !data) throw error || new Error('Role not found');
-      setUserRole(data.role);
+      if (isAdmin) {
+        setUserRole('admin');
+        localStorage.setItem('userType', 'admin');
+      } else {
+        // For students, check user_profiles
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (error || !data) throw error || new Error('Student profile not found');
+        setUserRole(data.role || 'student');
+        localStorage.setItem('userType', data.role || 'student');
+      }
     } catch (error) {
       console.error('Error fetching user role:', error);
       setUserRole(null);
@@ -81,19 +103,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userId = authData.user?.id;
       setUser(authData.user);
 
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('role, roll_number')
-        .eq('id', userId)
-        .single();
+      // Check if this is an admin login (by email domain or specific emails)
+      const isAdmin = email.includes('@vit.ac.in') && (
+        email.includes('admin') || 
+        email.includes('faculty') || 
+        email.includes('hod') ||
+        email === 'admin@vit.ac.in'
+      );
 
-      if (profileError || !profileData) throw profileError || new Error('Profile not found');
+      if (isAdmin) {
+        // Admin login - no user_profiles check needed
+        setUserRole('admin');
+        localStorage.setItem('userType', 'admin');
+      } else {
+        // Student login - verify via user_profiles
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('role, roll_number')
+          .eq('id', userId)
+          .single();
 
-      const role = profileData.role;
-      setUserRole(role);
+        if (profileError || !profileData) throw profileError || new Error('Student profile not found');
 
-      // Store student data only for students
-      if (role === 'student') {
+        const role = profileData.role || 'student';
+        setUserRole(role);
+
+        // Store student data
         const { data: studentData, error: studentError } = await supabase
           .from('students')
           .select('*')
@@ -102,9 +137,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (studentError || !studentData) throw studentError || new Error('Student data not found');
         localStorage.setItem('currentUser', JSON.stringify(studentData));
-      }
 
-      localStorage.setItem('userType', role);
+        localStorage.setItem('userType', role);
+      }
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
       throw error;
