@@ -83,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const { data: profileData, error: profileError } = await supabase
         .from('user_profiles')
-        .select('role, rollNumber')
+        .select('role, roll_number')
         .eq('id', userId)
         .single();
 
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: studentData, error: studentError } = await supabase
           .from('students')
           .select('*')
-          .eq('rollNumber', profileData.rollNumber)
+          .eq('roll_number', profileData.roll_number)
           .single();
 
         if (studentError || !studentData) throw studentError || new Error('Student data not found');
@@ -140,8 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .insert([{
           id: user.id,
           email,
-          role: 'student',
-          rollNumber: userData.roll_number
+          roll_number: userData.roll_number
         }]);
 
       if (profileError) throw profileError;
