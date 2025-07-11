@@ -34,7 +34,7 @@ interface StudentFormData {
 // -----------------------------------------------------------------------------
 // Component
 // -----------------------------------------------------------------------------
-export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
+export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, type }) => {
   const navigate = useNavigate();
   const { signIn, signUp } = useAuth();
   const { addStudent } = useStudents();
@@ -46,10 +46,7 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
-  const [loginData, setLoginData] = useState({
-    email: "",
-    password: "",
-  });
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
 
   const [studentData, setStudentData] = useState<StudentFormData>({
     name: "",
@@ -84,10 +81,7 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error, data } = await signIn(
-        loginData.email.trim(),
-        loginData.password
-      );
+      const { error, data } = await signIn(loginData.email.trim(), loginData.password);
       if (error) throw error;
 
       if (type === "student") {
@@ -98,9 +92,7 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
           .single();
         if (profileError) throw profileError;
         if (profile?.status !== "approved") {
-          throw new Error(
-            "Your profile is pending approval. Please wait for admin confirmation."
-          );
+          throw new Error("Your profile is pending approval. Please wait for admin confirmation.");
         }
       }
 
@@ -134,21 +126,15 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
 
       if (verifyError) throw verifyError;
       if (!verified) {
-        toast.error(
-          "You are not in the list of verified students. Please contact admin."
-        );
+        toast.error("You are not in the list of verified students. Please contact admin.");
         return;
       }
 
       // 2⃣ Create Auth account – default pwd `student123`
-      const { error: signUpError, data: signUpData } = await signUp(
-        studentData.email.trim(),
-        "student123",
-        {
-          name: studentData.name,
-          roll_number: studentData.rollNumber,
-        }
-      );
+      const { error: signUpError, data: signUpData } = await signUp(studentData.email.trim(), "student123", {
+        name: studentData.name,
+        roll_number: studentData.rollNumber,
+      });
       if (signUpError) throw signUpError;
 
       // 3⃣ Insert profile with status: pending
@@ -193,9 +179,7 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
   // ---------------------------------------------------------------------------
   // Generic input change handler
   // ---------------------------------------------------------------------------
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (isRegistering) {
       setStudentData((prev) => ({ ...prev, [name]: value }));
@@ -205,7 +189,36 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
   };
 
   // ---------------------------------------------------------------------------
-  // Render
+  // Render helpers
+  // ---------------------------------------------------------------------------
+  const PasswordInput = () => (
+    <div>
+      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+        Password
+      </Label>
+      <div className="relative mt-1">
+        <Input
+          type={showPassword ? "text" : "password"}
+          id="password"
+          name="password"
+          value={loginData.password}
+          onChange={handleInputChange}
+          placeholder="Enter password"
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword((prev) => !prev)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600"
+        >
+          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // JSX
   // ---------------------------------------------------------------------------
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -214,19 +227,11 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
         <div className="flex items-center justify-between border-b border-gray-200 p-6">
           <div className="flex items-center space-x-3">
             <div className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 p-2">
-              {type === "admin" ? (
-                <Shield className="h-5 w-5 text-white" />
-              ) : (
-                <User className="h-5 w-5 text-white" />
-              )}
+              {type === "admin" ? <Shield className="h-5 w-5 text-white" /> : <User className="h-5 w-5 text-white" />}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-800">
-                {type === "admin"
-                  ? "Admin Login"
-                  : isRegistering
-                  ? "Student Registration"
-                  : "Student Login"}
+                {type === "admin" ? "Admin Login" : isRegistering ? "Student Registration" : "Student Login"}
               </h2>
               <p className="text-sm text-gray-600">
                 {type === "admin"
@@ -237,10 +242,7 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 transition-colors hover:text-gray-600"
-          >
+          <button onClick={onClose} className="text-gray-400 transition-colors hover:text-gray-600">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -265,5 +267,44 @@ export const LoginModal = ({ isOpen, onClose, type }: LoginModalProps) => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="
+              <PasswordInput />
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-colors hover:from-blue-600 hover:to-indigo-600"
+              >
+                {loading ? "Signing in..." : type === "admin" ? "Login as Admin" : "Login as Student"}
+              </Button>
+
+              {type === "student" && (
+                <div className="text-center">
+                  <p className="mb-2 text-sm text-gray-600">Don't have an account?</p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsRegistering(true)}
+                    className="flex w-full items-center justify-center space-x-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>Create New Profile</span>
+                  </Button>
+                </div>
+              )}
+            </form>
+          ) : (
+            // -------------------- REGISTRATION FORM -------------------- //
+            <form onSubmit={handleStudentRegistration} className="space-y-4">
+              {/* Name & HT No */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                    Full Name *
+                  </Label>
+                  <Input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={studentData.name}
+                    onChange={handleInputChange}
+                    placeholder="Enter full
