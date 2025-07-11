@@ -57,13 +57,13 @@ export const useStudents = () => {
       const { data, error } = await supabase
         .from('students')
         .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('rollNumber', rollNumber)
+        .eq('roll_number', rollNumber)
         .select()
         .single()
 
       if (error) throw error
 
-      setStudents(prev => prev.map(s => s.rollNumber === rollNumber ? data : s))
+      setStudents(prev => prev.map(s => s.roll_number === rollNumber ? data : s))
       toast.success('Student updated successfully')
       return data
     } catch (error) {
@@ -84,11 +84,11 @@ export const useStudents = () => {
       const { error } = await supabase
         .from('students')
         .delete()
-        .eq('rollNumber', rollNumber)
+        .eq('roll_number', rollNumber)
 
       if (error) throw error
 
-      setStudents(prev => prev.filter(s => s.rollNumber !== rollNumber))
+      setStudents(prev => prev.filter(s => s.roll_number !== rollNumber))
       toast.success('Student deleted successfully')
     } catch (error) {
       console.error('Error deleting student:', error)

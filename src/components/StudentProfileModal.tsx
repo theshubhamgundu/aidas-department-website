@@ -45,17 +45,15 @@ interface Student {
 }
 
 interface StudentProfileModalProps {
-  student: Student;
-  isOpen: boolean;
+  student: any;
   onClose: () => void;
-  onUpdate: (student: Student) => void;
+  onSave: (student: any) => void;
 }
 
 const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   student,
-  isOpen,
   onClose,
-  onUpdate
+  onSave
 }) => {
   const [formData, setFormData] = useState<Student>(student);
 
@@ -64,7 +62,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
   };
 
   const handleSave = () => {
-    onUpdate(formData);
+    onSave(formData);
     onClose();
   };
 
@@ -143,7 +141,7 @@ const StudentProfileModal: React.FC<StudentProfileModalProps> = ({
     }));
   };
 
-  if (!isOpen) return null;
+  // Always render the modal when this component is called
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

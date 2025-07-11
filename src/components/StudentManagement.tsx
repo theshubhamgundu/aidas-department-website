@@ -44,7 +44,7 @@ const StudentManagement = () => {
     if (searchTerm) {
       filtered = filtered.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.rollNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.roll_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
         student.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -72,7 +72,7 @@ const StudentManagement = () => {
   };
 
   const handleUpdateStudent = async (updated: any) => {
-    await updateStudent(updated.rollNumber, updated);
+    await updateStudent(updated.roll_number, updated);
     setIsProfileModalOpen(false);
   };
 
@@ -143,8 +143,8 @@ const StudentManagement = () => {
             </TableHeader>
             <TableBody>
               {filteredStudents.map(student => (
-                <TableRow key={student.rollNumber}>
-                  <TableCell>{student.rollNumber}</TableCell>
+                <TableRow key={student.roll_number}>
+                  <TableCell>{student.roll_number}</TableCell>
                   <TableCell>{student.name}</TableCell>
                   <TableCell>{student.year}</TableCell>
                   <TableCell>{student.status}</TableCell>
@@ -153,13 +153,13 @@ const StudentManagement = () => {
                     <Button variant="outline" size="sm" onClick={() => handleEdit(student)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleApprove(student.rollNumber)}>
+                    <Button variant="outline" size="sm" onClick={() => handleApprove(student.roll_number)}>
                       <CheckCircle className="h-4 w-4 text-green-600" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleReject(student.rollNumber)}>
+                    <Button variant="outline" size="sm" onClick={() => handleReject(student.roll_number)}>
                       <XCircle className="h-4 w-4 text-red-600" />
                     </Button>
-                    <Button variant="destructive" size="sm" onClick={() => handleDelete(student.rollNumber)}>
+                    <Button variant="destructive" size="sm" onClick={() => handleDelete(student.roll_number)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </TableCell>

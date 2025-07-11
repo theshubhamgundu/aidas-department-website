@@ -21,15 +21,13 @@ interface Student {
 }
 
 interface AddStudentModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  onAdd: (student: Student) => void;
+  onSave: (student: Student) => void;
 }
 
 const AddStudentModal: React.FC<AddStudentModalProps> = ({
-  isOpen,
   onClose,
-  onAdd
+  onSave
 }) => {
   const [formData, setFormData] = useState<Student>({
     rollNumber: '',
@@ -56,7 +54,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
       return;
     }
 
-    onAdd(formData);
+    onSave(formData);
     onClose();
 
     // Reset form
@@ -76,7 +74,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({
     });
   };
 
-  if (!isOpen) return null;
+  // Always render the modal when this component is called
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

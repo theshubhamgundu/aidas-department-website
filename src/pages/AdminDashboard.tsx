@@ -7,6 +7,7 @@ import { Shield, Users, BookOpen, Calendar, Settings, LogOut, UserCheck, UserX }
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudents } from '@/hooks/useStudents';
+import { Student } from '@/lib/supabase';
 import StudentManagement from '../components/StudentManagement';
 import AddCourseModal from '../components/AddCourseModal';
 import CreateTimetableModal from '../components/CreateTimetableModal';
@@ -186,7 +187,7 @@ const AdminDashboard = () => {
                     <div key={student.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
                         <h4 className="font-medium">{student.name}</h4>
-                        <p className="text-sm text-gray-600">{student.rollNumber} • {student.email}</p>
+                        <p className="text-sm text-gray-600">{student.roll_number} • {student.email}</p>
                         <p className="text-xs text-gray-500">{student.year}</p>
                       </div>
                       <div className="flex space-x-2">
@@ -309,7 +310,7 @@ const AdminDashboard = () => {
       <AddCourseModal isOpen={isAddCourseModalOpen} onClose={() => setIsAddCourseModalOpen(false)} onAdd={handleAddCourse} />
       <CreateTimetableModal isOpen={isCreateTimetableModalOpen} onClose={() => setIsCreateTimetableModalOpen(false)} onAdd={handleCreateTimetable} />
       <AttendanceUploadModal isOpen={isAttendanceUploadModalOpen} onClose={() => setIsAttendanceUploadModalOpen(false)} onUpload={handleUploadAttendance} />
-      <ExportDataModal isOpen={isExportDataModalOpen} onClose={() => setIsExportDataModalOpen(false)} students={students} />
+      <ExportDataModal isOpen={isExportDataModalOpen} onClose={() => setIsExportDataModalOpen(false)} students={students as any} />
     </div>
   );
 };
