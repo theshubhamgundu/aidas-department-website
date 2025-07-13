@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudents } from "@/hooks/useStudents";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabase";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -64,14 +64,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, type })
     e.preventDefault();
     setLoading(true);
     try {
-      const { error, data } = await signIn(loginData.email.trim(), loginData.password);
-      if (error) throw error;
-
+      await signIn(loginData.email.trim(), loginData.password);
+      
+      // For admin, no profile check needed
       if (type === "student") {
         const { data: profile, error: profileError } = await supabase
           .from("user_profiles")
           .select("status")
-          .eq("id", data.user?.id)
+          .eq("email", loginData.email.trim())
           .single();
         if (profileError) throw profileError;
         if (profile?.status !== "approved") {
@@ -107,20 +107,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, type })
         return;
       }
 
-      const { error: signUpError, data: signUpData } = await signUp(
+      await signUp(
         studentData.email.trim(),
         "student123",
         { name: studentData.name, roll_number: studentData.rollNumber }
       );
-      if (signUpError) throw signUpError;
 
       await addStudent({
-        id: signUpData.user!.id,
         roll_number: studentData.rollNumber,
         name: studentData.name,
         email: studentData.email,
         phone: studentData.phone,
         year: studentData.year,
+        section: "A",
         semester: studentData.semester,
         cgpa: "0.0",
         attendance: "0%",
@@ -128,6 +127,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, type })
         address: studentData.address,
         parent_name: studentData.parentName,
         parent_phone: studentData.parentPhone,
+        date_of_birth: "1990-01-01",
+        blood_group: "O+",
+        category: "General",
+        admission_date: new Date().toISOString().split('T')[0],
+        hostel_details: "N/A",
         emergency_contact: studentData.emergencyContact,
       });
 

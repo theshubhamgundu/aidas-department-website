@@ -43,7 +43,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleApproveStudent = async (studentId) => {
+  const handleApproveStudent = async (studentId: string) => {
     try {
       await approveStudent(studentId);
     } catch (error) {
@@ -51,7 +51,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleRejectStudent = async (studentId) => {
+  const handleRejectStudent = async (studentId: string) => {
     try {
       await rejectStudent(studentId);
     } catch (error) {
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleAddCourse = (newCourse) => {
+  const handleAddCourse = (newCourse: any) => {
     const course = {
       ...newCourse,
       id: Math.max(...courses.map(c => c.id), 0) + 1
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
     console.log('Course added:', course);
   };
 
-  const handleCreateTimetable = (newTimetable) => {
+  const handleCreateTimetable = (newTimetable: any) => {
     const timetable = {
       ...newTimetable,
       id: Math.max(...timetables.map(t => t.id), 0) + 1
@@ -77,7 +77,7 @@ const AdminDashboard = () => {
     console.log('Timetable created:', timetable);
   };
 
-  const handleUploadAttendance = (attendanceData) => {
+  const handleUploadAttendance = (attendanceData: any) => {
     console.log('Uploading attendance data:', attendanceData);
   };
 
@@ -182,18 +182,18 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {pendingStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                   {pendingStudents.map((student) => (
+                     <div key={student.roll_number} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                       <div>
                         <h4 className="font-medium">{student.name}</h4>
-                        <p className="text-sm text-gray-600">{student.rollNumber} • {student.email}</p>
+                        <p className="text-sm text-gray-600">{student.roll_number} • {student.email}</p>
                         <p className="text-xs text-gray-500">{student.year}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button size="sm" onClick={() => handleApproveStudent(student.id)} className="bg-green-600 hover:bg-green-700">
+                         <Button size="sm" onClick={() => handleApproveStudent(student.roll_number)} className="bg-green-600 hover:bg-green-700">
                           <UserCheck className="w-4 h-4 mr-1" /> Approve
                         </Button>
-                        <Button size="sm" variant="outline" onClick={() => handleRejectStudent(student.id)} className="border-red-300 text-red-600 hover:bg-red-50">
+                        <Button size="sm" variant="outline" onClick={() => handleRejectStudent(student.roll_number)} className="border-red-300 text-red-600 hover:bg-red-50">
                           <UserX className="w-4 h-4 mr-1" /> Reject
                         </Button>
                       </div>
@@ -309,7 +309,7 @@ const AdminDashboard = () => {
       <AddCourseModal isOpen={isAddCourseModalOpen} onClose={() => setIsAddCourseModalOpen(false)} onAdd={handleAddCourse} />
       <CreateTimetableModal isOpen={isCreateTimetableModalOpen} onClose={() => setIsCreateTimetableModalOpen(false)} onAdd={handleCreateTimetable} />
       <AttendanceUploadModal isOpen={isAttendanceUploadModalOpen} onClose={() => setIsAttendanceUploadModalOpen(false)} onUpload={handleUploadAttendance} />
-      <ExportDataModal isOpen={isExportDataModalOpen} onClose={() => setIsExportDataModalOpen(false)} students={students} />
+      <ExportDataModal isOpen={isExportDataModalOpen} onClose={() => setIsExportDataModalOpen(false)} students={students as any[]} />
     </div>
   );
 };
